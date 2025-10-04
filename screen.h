@@ -5,7 +5,7 @@
 #define SCREEN_HEIGHT 720
 
 // TMP, based on training and test sets
-#define CELL_WIDTH 5
+#define CELL_WIDTH 28
 
 /** ========== Common SDL methods ========== **/
 void init();
