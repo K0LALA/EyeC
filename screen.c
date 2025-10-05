@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "screen.h"
+
+TTF_Font *font = NULL;
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer;
@@ -21,6 +24,22 @@ void init()
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         printf("SDL_Init Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
+
+    if (TTF_Init() < 0)
+    {
+        printf("TTF_Init Error: %s\n", TTF_GetError());
+        SDL_Quit();
+        exit(EXIT_FAILURE);
+    }
+
+    font = TTF_OpenFont(FONT_NOTO_SANS, FONT_SIZE);
+    if (font == NULL)
+    {
+        printf("TTF_OpenFont Error: %s\n", TTF_GetError());
+        TTF_Quit();
+        SDL_Quit();
         exit(EXIT_FAILURE);
     }
 
@@ -53,20 +72,26 @@ void finish()
     SDL_DestroyTexture(mainTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    TTF_CloseFont(font);
 
+    TTF_Quit();
     SDL_Quit();
 }
 
+/// @brief Updates the screen
 void updateScreen()
 {
     SDL_RenderPresent(renderer);
 }
 
-/// @brief Clears the screen
-void clearScreen()
+/// @brief Clears the current rendering target, update needs to be done to see changes on screen
+void clearRenderingTarget()
 {
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
+    if (SDL_RenderClear(renderer) != 0)
+    {
+        printf("SDL_RenderClear Erorr: %s\n", SDL_GetError());
+        return;
+    }
 }
 
 /// @brief Renders to intermediate texture, in the stack
@@ -84,14 +109,52 @@ void displayMainTexture()
     // Set render target to screen
     if (SDL_SetRenderTarget(renderer, NULL) < 0)
     {
-        printf("SDL_SetRenderTarget2 Error: %s\n", SDL_GetError());
+        printf("SDL_SetRenderTarget Error: %s\n", SDL_GetError());
         return;
     }
-    // Render copy from texture to screen
-    SDL_RenderCopy(renderer, mainTexture, NULL, NULL);
 
-    // Render present
+    // Copy the texture to the screen
+    if (SDL_RenderCopy(renderer, mainTexture, NULL, NULL))
+    {
+        printf("SDL_RenderCopy Error: %s\n", SDL_GetError());
+        return; 
+    }
+
     SDL_RenderPresent(renderer);
+}
+
+/// @brief Renders text on the screen using the default font and color
+/// @param text The text to render
+/// @param x The abscissa for the text (left), -1 for centered
+/// @param y The ordinate for the text (top), -1 for centered
+/// @return 0 for success, 1 for failure
+int renderText(const char *text, const int x, const int y)
+{
+    SDL_Surface *textSurface = TTF_RenderText_Blended(font, text, foregroundColor);
+    if (!textSurface)
+    {
+        printf("TTF_RenderText Error: %s\n", TTF_GetError());
+        return 1;
+    }
+
+    SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    if (!textTexture)
+    {
+        printf("SDL_CreateTextureFromSurface Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Rect textRect = {x, y, textSurface->w, textSurface->h};
+    if (SDL_RenderCopy(renderer, textTexture, NULL, &textRect) < 0)
+    {
+        printf("SDL_RenderCopy Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    SDL_DestroyTexture(textTexture);
+    SDL_FreeSurface(textSurface);
+
+    return 0;
 }
 
 /** ========== EyeC specific methods ========== **/

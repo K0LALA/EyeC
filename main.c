@@ -3,78 +3,62 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 #include "main.h"
+#include "file.h"
 #include "screen.h"
 
 const char* IMAGES_FILE = "train-images-idx3-ubyte";
 const char* LABELS_FILE = "train-labels-idx1-ubyte";
 const _Bool training = 1;
 
-int count;
+uint32_t count;
 int cols;
 int rows;
-
-uint32_t read32FromFile(FILE* file)
-{
-    uint32_t number = 0;
-    uint32_t multiplier = 16777216;
-    for (int i = 0; i < 4; i++)
-    {
-        number += fgetc(file) * multiplier;
-        multiplier /= 256;
-    }
-    return number;
-}
-
-/// @brief Reads the file and parses data to `drawRegion`
-/// @param file The images file to read from
-/// @param drawRegion A pointer to the 2D array to place content in
-void readDrawRegion(FILE* file, uint8_t drawRegion[][CELL_WIDTH])
-{
-    for (int y = 0; y < CELL_WIDTH; y++)
-    {
-        for (int x = 0; x < CELL_WIDTH; x++)
-        {
-            drawRegion[y][x] = fgetc(file);
-        }
-    }
-}
 
 int main(int argc, char **argv)
 {
     FILE* imagesFile = NULL;
     FILE* labelsFile = NULL;
 
-    imagesFile = fopen(IMAGES_FILE, "r");
-    if (imagesFile == NULL)
+    if (openFile(&imagesFile, IMAGES_FILE))
     {
-        puts("Error when trying to open images file");
+        return EXIT_FAILURE;
+    }
+    if (openFile(&labelsFile, LABELS_FILE))
+    {
+        closeFiles();
         return EXIT_FAILURE;
     }
 
-    
     // Test magic number (32-bit)
     uint32_t magic = read32FromFile(imagesFile);
 
     if (magic != 2051)
     {
-        printf("Magic number is not right: %d", magic);
-        fclose(imagesFile);
+        printf("Magic number is not right: %u", magic);
+        closeFiles();
         return EXIT_FAILURE;
     }
 
     count = read32FromFile(imagesFile);
     rows = read32FromFile(imagesFile);
     cols = read32FromFile(imagesFile);
-    printf("%d %d %d\n", count, rows, cols);
+    printf("%u %u %u\n", count, rows, cols);
 
-    
-    labelsFile = fopen(LABELS_FILE, "r");
-    if (labelsFile == NULL)
+    uint32_t labelsMagic = read32FromFile(labelsFile);
+    if (labelsMagic != 2049)
     {
-        puts("Error when trying to open labels file");
-        fclose(imagesFile);
+        printf("Magic number is not right: %u", labelsMagic);
+        closeFiles();
+    }
+
+    uint32_t labelsCount = read32FromFile(labelsFile);
+    if (count != labelsCount)
+    {
+        printf("Counts do not match: %d\n", labelsCount);
+        closeFiles();
         return EXIT_FAILURE;
     }
     
@@ -82,25 +66,32 @@ int main(int argc, char **argv)
 
     uint8_t testDrawRegion[CELL_WIDTH][CELL_WIDTH];
     readDrawRegion(imagesFile, testDrawRegion);
+    uint8_t label = read8FromFile(labelsFile);
+    char labelText[11] = "\0";
+    sprintf(labelText, "Digit: %d", label);
 
     renderOnMainTexture();
     renderDrawRegion(testDrawRegion, 50, 50, 10);
+    renderText(labelText, 50, 340);
     displayMainTexture();
 
     SDL_Delay(2000);
 
     readDrawRegion(imagesFile, testDrawRegion);
+    label = read8FromFile(labelsFile);
+    sprintf(labelText, "Digit: %d", label);
 
     renderOnMainTexture();
+    clearRenderingTarget();
     renderDrawRegion(testDrawRegion, 50, 50, 10);
+    renderText(labelText, 50, 340);
     displayMainTexture();
 
     SDL_Delay(2000);
 
     finish();
 
-    fclose(imagesFile);
-    fclose(labelsFile);
+    closeFiles();
 
     return 0;
 }
