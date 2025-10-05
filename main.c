@@ -13,10 +13,6 @@ const char* IMAGES_FILE = "train-images-idx3-ubyte";
 const char* LABELS_FILE = "train-labels-idx1-ubyte";
 const _Bool training = 1;
 
-uint32_t count;
-int cols;
-int rows;
-
 int main(int argc, char **argv)
 {
     FILE* imagesFile = NULL;
@@ -41,6 +37,10 @@ int main(int argc, char **argv)
         closeFiles();
         return EXIT_FAILURE;
     }
+
+    uint32_t count;
+    int cols;
+    int rows;
 
     count = read32FromFile(imagesFile);
     rows = read32FromFile(imagesFile);
