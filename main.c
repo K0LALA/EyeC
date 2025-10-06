@@ -1,17 +1,21 @@
 #include <stdio.h>
 #include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
 #include "main.h"
+#include "constants.h"
 #include "file.h"
 #include "screen.h"
 
 const char* IMAGES_FILE = "train-images-idx3-ubyte";
 const char* LABELS_FILE = "train-labels-idx1-ubyte";
-const _Bool training = 1;
+const bool training = true;
+
+SDL_Event event;
 
 int main(int argc, char **argv)
 {
@@ -64,7 +68,82 @@ int main(int argc, char **argv)
     
     init();
 
-    uint8_t testDrawRegion[CELL_WIDTH][CELL_WIDTH];
+    uint32_t currentDigit = 0;
+    char currentDigitText[18] = "\0";
+    sprintf(currentDigitText, INDEX_PLACEHOLDER, currentDigit);
+
+    uint8_t drawRegion[CELL_WIDTH][CELL_WIDTH];
+    uint8_t label;
+    getNextDigit(imagesFile, labelsFile, drawRegion, &label);
+    char labelText[11] = "\0";
+    sprintf(labelText, DIGIT_PLACEHOLDER, label);
+
+    bool stopping = false;
+    bool render = true;
+    while (!stopping)
+    {
+        if (render)
+        {
+            sprintf(currentDigitText, INDEX_PLACEHOLDER, currentDigit);
+            sprintf(labelText, DIGIT_PLACEHOLDER, label);
+
+            renderOnMainTexture();
+            clearRenderingTarget();
+            renderDrawRegion(drawRegion, 50, 50, 10);
+            renderText(labelText, 50, 340);
+            renderText(currentDigitText, 50, 370);
+            displayMainTexture();
+        }
+
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+            case SDL_QUIT:
+                stopping = true;
+                break;
+
+            case SDL_KEYDOWN:
+                int key = event.key.keysym.sym;
+                if (key == SDLK_ESCAPE)
+                {
+                    stopping = true;
+                }
+                else if (key == SDLK_RIGHT)
+                {
+                    // Read next digit
+                    currentDigit++;
+                    if (currentDigit >= count)
+                    {
+                        currentDigit = 0;
+                        fseek(imagesFile, 16, SEEK_SET);
+                        fseek(labelsFile, 8, SEEK_SET);
+                    }
+                    getNextDigit(imagesFile, labelsFile, drawRegion, &label);
+                    render = true;
+                }
+                else if (key == SDLK_LEFT)
+                {
+                    // Read last digit
+                    if (currentDigit == 0)
+                    {
+                        currentDigit = count;
+                        fseek(imagesFile, -1 * rows * cols, SEEK_END);
+                        fseek(labelsFile, -1, SEEK_END);
+                    }
+                    currentDigit--;
+                    // Move cursor back
+                    fseek(imagesFile, -2 * rows * cols, SEEK_CUR);
+                    fseek(labelsFile, -2, SEEK_CUR);
+                    getNextDigit(imagesFile, labelsFile, drawRegion, &label);
+                    render = true;
+                }
+                break;
+            }
+        }
+    }
+
+    /*uint8_t testDrawRegion[CELL_WIDTH][CELL_WIDTH];
     readDrawRegion(imagesFile, testDrawRegion);
     uint8_t label = read8FromFile(labelsFile);
     char labelText[11] = "\0";
@@ -87,7 +166,7 @@ int main(int argc, char **argv)
     renderText(labelText, 50, 340);
     displayMainTexture();
 
-    SDL_Delay(2000);
+    SDL_Delay(2000);*/
 
     finish();
 

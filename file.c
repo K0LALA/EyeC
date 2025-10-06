@@ -41,6 +41,12 @@ void closeFiles()
     }
 }
 
+void getNextDigit(FILE* imagesFile, FILE* labelsFile, uint8_t drawRegion[][CELL_WIDTH], uint8_t *label)
+{
+    readDrawRegion(imagesFile, drawRegion);
+    *label = read8FromFile(labelsFile);
+}
+
 uint8_t read8FromFile(FILE* file)
 {
     uint8_t number = fgetc(file);
