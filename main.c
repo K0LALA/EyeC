@@ -143,31 +143,6 @@ int main(int argc, char **argv)
         }
     }
 
-    /*uint8_t testDrawRegion[CELL_WIDTH][CELL_WIDTH];
-    readDrawRegion(imagesFile, testDrawRegion);
-    uint8_t label = read8FromFile(labelsFile);
-    char labelText[11] = "\0";
-    sprintf(labelText, "Digit: %d", label);
-
-    renderOnMainTexture();
-    renderDrawRegion(testDrawRegion, 50, 50, 10);
-    renderText(labelText, 50, 340);
-    displayMainTexture();
-
-    SDL_Delay(2000);
-
-    readDrawRegion(imagesFile, testDrawRegion);
-    label = read8FromFile(labelsFile);
-    sprintf(labelText, "Digit: %d", label);
-
-    renderOnMainTexture();
-    clearRenderingTarget();
-    renderDrawRegion(testDrawRegion, 50, 50, 10);
-    renderText(labelText, 50, 340);
-    displayMainTexture();
-
-    SDL_Delay(2000);*/
-
     finish();
 
     closeFiles();
