@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdint.h>
-
 #include "file.h"
 
 FILE *openedFiles[MAX_FILE_COUNT];

@@ -1,6 +1,11 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+
 #include "constants.h"
 
 #define SCREEN_WIDTH 1080

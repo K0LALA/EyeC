@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-
 #include "screen.h"
 
 TTF_Font *font = NULL;

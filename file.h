@@ -1,6 +1,9 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include <stdio.h>
+#include <stdint.h>
+
 #include "constants.h"
 
 #define MAX_FILE_COUNT 2

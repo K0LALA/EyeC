@@ -1,18 +1,7 @@
-#include <stdio.h>
-#include <math.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-
 #include "main.h"
-#include "constants.h"
-#include "file.h"
-#include "screen.h"
 
-const char* IMAGES_FILE = "train-images-idx3-ubyte";
-const char* LABELS_FILE = "train-labels-idx1-ubyte";
+const char* IMAGES_FILE = IMAGES_FILE_PATH;
+const char* LABELS_FILE = LABELS_FILE_PATH;
 const bool training = true;
 
 SDL_Event event;
