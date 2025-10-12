@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
+            "name": "Debug GUI",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/eyec.out",
@@ -12,7 +12,32 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "preLaunchTask": "C/C++: gcc build active file",
+            "preLaunchTask": "Build GUI",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Debug Train",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/eyec_train.out",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "Build Train",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
