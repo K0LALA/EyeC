@@ -2,7 +2,6 @@
 
 const char* IMAGES_FILE = IMAGES_FILE_PATH;
 const char* LABELS_FILE = LABELS_FILE_PATH;
-const bool training = true;
 
 SDL_Event event;
 

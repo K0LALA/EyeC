@@ -23,6 +23,35 @@ void initLayer(Layer *layer, int size, int previousSize, double biases[], double
         layer->weights[i] = weights[i];
     }
     layer->cells = cells;
-
-    layer->nextLayer = NULL;
 }
+
+/// @brief Calculates the value for each cell of `layer` using `previousLayer`
+/// @param layer A ponter to the layer to calculate
+/// @param previousLayer The previous layer to use for calculation, not changed
+void calculateLayer(Layer *layer, Layer *previousLayer)
+{
+    for (int i = 0; i < layer->size; i++)
+    {
+        // We reset the cell and apply the bias
+        double weightedSum = 0;
+        // We connect to every previous cell
+        for (int j = 0; j < previousLayer->size; j++)
+        {
+            weightedSum += previousLayer->cells[j] * layer->weights[i][j];
+        }
+        layer->cells[i] = ACTIVATION_FUNCTION(weightedSum + layer->biases[i]);
+    }
+}
+
+/// @brief Maps the input values from [0;255] to [-1;1]
+/// @param inputLayer The input layer to place values in
+/// @param values The values from the images in the [0;255] range
+void mapInputLayer(Layer *inputLayer, uint8_t values[inputLayer->size])
+{
+    for (int i = 0; i < inputLayer->size; i++)
+    {
+        inputLayer->cells[i] = (values[i] / 127.5f) - 1;
+    }
+}
+
+
