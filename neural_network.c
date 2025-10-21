@@ -54,4 +54,104 @@ void mapInputLayer(Layer *inputLayer, uint8_t values[inputLayer->size])
     }
 }
 
+/// Stores the Neural Network in a file.
+///
+/// The file is written using the following format (inspired by the IDX format):
+/// - The first 4 bytes is the magic number, composed by two 0s first.
+/// - Then, the type of data (refer to IDX format for more info), here the type is double so 0xOE.
+/// - Finally, the number of layers in the Neural Network, not counting the input layer.
+/// 
+/// After, for each layer of the NN its size is written as a 16-bit integer.
+/// Here, the input layer is counted since we need to know its size
+/// 
+/// Finally the biases, with `length=layerSize`, are written, followed by the weights, with `length=layerSize*previousLayerSize`.
+/// @param NN The array of layers, without the input layer
+/// @param fileName The name of the file to store the file in, content gets overwritten
+void storeNN(Layer NN[LAYER_COUNT - 1], char* fileName)
+{
+    FILE* file = NULL;
+    // Not needed on Linux, but on other OS, useful to make distinction
+    file = fopen(fileName, "wb");
+    if (file == NULL)
+    {
+        printf("Couldn't open file: %s\n", fileName);
+        exit(EXIT_FAILURE);
+    }
+    char* buffer = (char*)malloc(sizeof(uint32_t));
+
+    // Magic number, 3587 here
+    uint32_t magic = 0x0E * 256 + LAYER_COUNT - 1;    
+    memcpy(buffer, &magic, sizeof(uint32_t));
+    fwrite(buffer, sizeof(buffer), 1, file);
+
+    // NN sizes
+    buffer = (char*)realloc(buffer, LAYER_COUNT * sizeof(uint16_t));
+    uint16_t inputLayerSize = NN[0].previousSize;
+    memcpy(buffer, &inputLayerSize, sizeof(uint16_t));
+
+    for (int i = 0; i < LAYER_COUNT - 1; i++)
+    {
+        uint16_t layerSize = NN[i].size;
+        memcpy(buffer + (i + 1) * sizeof(uint16_t), &layerSize, sizeof(uint16_t));
+    }
+    fwrite(buffer, sizeof(buffer), 1, file);
+    free(buffer);
+    
+    // NN content
+    for (int i = 0; i < LAYER_COUNT - 1; i++)
+    {
+        size_t size = sizeof(double) * NN[i].size;
+        char* biasesBuffer = (char*)malloc(size);
+        if (biasesBuffer == NULL)
+        {
+            puts("Couldn't allocate memory for biasesBuffer");
+            fclose(file);
+            exit(EXIT_FAILURE);
+        }
+        memcpy(biasesBuffer, NN[i].biases, size);
+        fwrite(biasesBuffer, size, 1, file);
+        free(biasesBuffer);
+
+        // Weights
+        for (int j = 0; j < NN[i].size; j++)
+        {
+            size_t weightSize = sizeof(double) * NN[i].previousSize;
+            char* weightsBuffer = (char*)malloc(weightSize);
+            if (weightsBuffer == NULL)
+            {
+                puts("Couldn't allocate memory for weightsBuffer");
+                fclose(file);
+                exit(EXIT_FAILURE);
+            }
+            memcpy(weightsBuffer, NN[i].weights[j], weightSize);
+            fwrite(weightsBuffer, weightSize, 1, file);
+            free(weightsBuffer);
+        }
+    }
+   
+    fclose(file);
+}
+
+/// @brief Loads the content of the file in the NN
+/// @param NN The array of layers, without the input layer
+/// @param fileName The name of the file to read
+void loadNN(Layer NN[LAYER_COUNT - 1], char* fileName)
+{
+    FILE* file = NULL;
+    file = fopen(fileName, "rb");
+    if (file == NULL)
+    {
+        printf("Couldn't open file: %s\n", fileName);
+        exit(EXIT_FAILURE);
+    }
+
+    uint32_t magic;
+    char* buffer = (char*)malloc(sizeof(uint32_t) + 1);
+    fgets(buffer, sizeof(uint32_t), file);
+    memcpy(&magic, buffer, sizeof(uint32_t));
+    printf("Magic: %d\n", magic);
+
+    free(buffer);
+    fclose(file);
+}
 

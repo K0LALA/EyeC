@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -11,8 +12,11 @@
 // The number of layers, counting the input layer
 #define LAYER_COUNT 4
 
-typedef struct Layer Layer;
+// Range: [0;1]
+#define ACTIVATION_FUNCTION(val) (1 / (1 + exp(-val)))
 
+
+typedef struct Layer Layer;
 /// @brief Describes one layer of a NN
 struct Layer {
     int size;                   // The number of cells in the layer
@@ -22,7 +26,12 @@ struct Layer {
     double **weights;           // The weights for each cell for each connection (from previous layer)
 };
 
-// Range: [0;1]
-#define ACTIVATION_FUNCTION(val) (1 / (1 + exp(-val)))
+void initLayer(Layer *layer, int size, int previousSize, double biases[], double weights[][previousSize]);
+void calculateLayer(Layer *layer, Layer *previousLayer);
+void mapInputLayer(Layer *inputLayer, uint8_t values[inputLayer->size]);
+
+void storeNN(Layer NN[LAYER_COUNT - 1], char* fileName);
+void loadNN(Layer NN[LAYER_COUNT - 1], char* fileName);
+
 
 #endif

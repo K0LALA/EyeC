@@ -1,4 +1,7 @@
 *.out
+# Do not include neural networks, this would take up too much space
+# When testing we would have several networks, that could result in 100MB easily, instead, good resulting NN are published in the releases or manually
+*.bin
 
 .vscode/*
 !.vscode/*.default

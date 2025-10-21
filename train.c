@@ -11,9 +11,13 @@ int main(int argc, char **argv)
     Layer NN[LAYER_COUNT - 1];
 
     initLayers(NN, -1.0, 1.0);
-    displayLayer(NN[0]);
+    displayLayer(NN[2]);
+
+    storeNN(NN, "neural_network-sigmoid.bin");
 
     destroyLayers(NN);
+
+    loadNN(NN, "neural_network-sigmoid.bin");
 
     return 0;
 }
