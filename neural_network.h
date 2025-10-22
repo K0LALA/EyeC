@@ -24,14 +24,24 @@ struct Layer {
     double *cells;              // The values for each cell
     double *biases;             // The biases for each cell
     double **weights;           // The weights for each cell for each connection (from previous layer)
+    // Think of a way to add the activation function, maybe through an enum
 };
+
+typedef struct NeuralNetwork NeuralNetwork;
+/// @brief Describes a whole neural network
+struct NeuralNetwork {
+    int layerCount;         // The number of layers, counting the input layer
+    int *layerSizes;        // The array describing sizes for each layer, counting the input layer
+    Layer *layers;          // The array describing each layer, not counting the input layer
+};
+//TODO: Implement this structure instead of defines
 
 void initLayer(Layer *layer, int size, int previousSize, double biases[], double weights[][previousSize]);
 void calculateLayer(Layer *layer, Layer *previousLayer);
 void mapInputLayer(Layer *inputLayer, uint8_t values[inputLayer->size]);
 
-void storeNN(Layer NN[LAYER_COUNT - 1], char* fileName);
-void loadNN(Layer NN[LAYER_COUNT - 1], char* fileName);
+void storeNN(NeuralNetwork NN, char* fileName);
+void loadNN(NeuralNetwork NN, char* fileName);
 
 
 #endif

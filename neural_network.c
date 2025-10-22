@@ -65,9 +65,9 @@ void mapInputLayer(Layer *inputLayer, uint8_t values[inputLayer->size])
 /// Here, the input layer is counted since we need to know its size
 /// 
 /// Finally the biases, with `length=layerSize`, are written, followed by the weights, with `length=layerSize*previousLayerSize`.
-/// @param NN The array of layers, without the input layer
+/// @param NN The neural network
 /// @param fileName The name of the file to store the file in, content gets overwritten
-void storeNN(Layer NN[LAYER_COUNT - 1], char* fileName)
+void storeNN(NeuralNetwork NN, char* fileName)
 {
     FILE* file = NULL;
     // Not needed on Linux, but on other OS, useful to make distinction
@@ -86,21 +86,21 @@ void storeNN(Layer NN[LAYER_COUNT - 1], char* fileName)
 
     // NN sizes
     buffer = (char*)realloc(buffer, LAYER_COUNT * sizeof(uint16_t));
-    uint16_t inputLayerSize = NN[0].previousSize;
+    uint16_t inputLayerSize = NN.layers[0].previousSize;
     memcpy(buffer, &inputLayerSize, sizeof(uint16_t));
 
-    for (int i = 0; i < LAYER_COUNT - 1; i++)
+    for (int i = 0; i < NN.layerCount - 1; i++)
     {
-        uint16_t layerSize = NN[i].size;
+        uint16_t layerSize = NN.layers[i].size;
         memcpy(buffer + (i + 1) * sizeof(uint16_t), &layerSize, sizeof(uint16_t));
     }
     fwrite(buffer, sizeof(buffer), 1, file);
     free(buffer);
     
     // NN content
-    for (int i = 0; i < LAYER_COUNT - 1; i++)
+    for (int i = 0; i < NN.layerCount - 1; i++)
     {
-        size_t size = sizeof(double) * NN[i].size;
+        size_t size = sizeof(double) * NN.layers[i].size;
         char* biasesBuffer = (char*)malloc(size);
         if (biasesBuffer == NULL)
         {
@@ -108,14 +108,14 @@ void storeNN(Layer NN[LAYER_COUNT - 1], char* fileName)
             fclose(file);
             exit(EXIT_FAILURE);
         }
-        memcpy(biasesBuffer, NN[i].biases, size);
+        memcpy(biasesBuffer, NN.layers[i].biases, size);
         fwrite(biasesBuffer, size, 1, file);
         free(biasesBuffer);
 
         // Weights
-        for (int j = 0; j < NN[i].size; j++)
+        for (int j = 0; j < NN.layers[i].size; j++)
         {
-            size_t weightSize = sizeof(double) * NN[i].previousSize;
+            size_t weightSize = sizeof(double) * NN.layers[i].previousSize;
             char* weightsBuffer = (char*)malloc(weightSize);
             if (weightsBuffer == NULL)
             {
@@ -123,7 +123,7 @@ void storeNN(Layer NN[LAYER_COUNT - 1], char* fileName)
                 fclose(file);
                 exit(EXIT_FAILURE);
             }
-            memcpy(weightsBuffer, NN[i].weights[j], weightSize);
+            memcpy(weightsBuffer, NN.layers[i].weights[j], weightSize);
             fwrite(weightsBuffer, weightSize, 1, file);
             free(weightsBuffer);
         }
@@ -133,9 +133,9 @@ void storeNN(Layer NN[LAYER_COUNT - 1], char* fileName)
 }
 
 /// @brief Loads the content of the file in the NN
-/// @param NN The array of layers, without the input layer
+/// @param NN The neural network
 /// @param fileName The name of the file to read
-void loadNN(Layer NN[LAYER_COUNT - 1], char* fileName)
+void loadNN(NeuralNetwork NN, char* fileName)
 {
     FILE* file = NULL;
     file = fopen(fileName, "rb");
