@@ -1,4 +1,5 @@
 *.out
+*.bin
 
 .vscode/*
 !.vscode/*.default

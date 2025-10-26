@@ -82,9 +82,14 @@ void updateScreen()
 /// @brief Clears the current rendering target, update needs to be done to see changes on screen
 void clearRenderingTarget()
 {
+    if (SDL_SetRenderDrawColor(renderer, backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a) != 0)
+    {
+        printf("SDL_SetRenderDrawColor Error: %s\n", SDL_GetError());
+        return;
+    }
     if (SDL_RenderClear(renderer) != 0)
     {
-        printf("SDL_RenderClear Erorr: %s\n", SDL_GetError());
+        printf("SDL_RenderClear Error: %s\n", SDL_GetError());
         return;
     }
 }
@@ -159,20 +164,21 @@ int renderText(const char *text, const int x, const int y)
 /// @param x Abscissa (left)
 /// @param y Ordinate (top)
 /// @param cellWidth Width of one pixel for the region
-void renderDrawRegion(const uint8_t drawRegion[][CELL_WIDTH], const int x, const int y, const int cellDrawSize)
+void renderDrawRegion(const int wRegion, const int hRegion, const uint8_t drawRegion[][wRegion], const int x, const int y, const int cellDrawSize)
 {
-    // Outline, the inside doesn't need to be erased, if some parts aren't covered, it's the user's fault
-    SDL_Rect outline = {x - 3, y - 3, cellDrawSize * CELL_WIDTH + 6, cellDrawSize * CELL_WIDTH + 6};
-    SDL_SetRenderDrawColor(renderer, foregroundColor.r, foregroundColor.g, foregroundColor.b, foregroundColor.a);
+    // Outline, the inside doesn't need to be erased
+    SDL_Rect outline = {x - 3, y - 3, cellDrawSize * wRegion + 6, cellDrawSize * hRegion + 6};
+    //SDL_SetRenderDrawColor(renderer, foregroundColor.r, foregroundColor.g, foregroundColor.b, foregroundColor.a);
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_RenderFillRect(renderer, &outline);
 
     // Content
     int currentX = x;
     int currentY = y;
-    for (int i = 0; i < CELL_WIDTH; i++)
+    for (int i = 0; i < hRegion; i++)
     {
         currentX = x;
-        for (int j = 0; j < CELL_WIDTH; j++)
+        for (int j = 0; j < wRegion; j++)
         {
             uint8_t pixelColor = drawRegion[i][j];
             SDL_Rect cellRect = {currentX, currentY, cellDrawSize, cellDrawSize};

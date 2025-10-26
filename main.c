@@ -1,14 +1,19 @@
 #include "main.h"
 
-const char* IMAGES_FILE = IMAGES_FILE_PATH;
-const char* LABELS_FILE = LABELS_FILE_PATH;
-const bool training = true;
+/*const char* IMAGES_FILE = IMAGES_FILE_PATH;
+const char* LABELS_FILE = LABELS_FILE_PATH;*/
 
 SDL_Event event;
 
+
+bool inRect(const int x, const int y, SDL_Rect* rect)
+{
+    return x > rect->x && x < rect->x + rect->w && y > rect->y && y < rect->y + rect->h;
+}
+
 int main(int argc, char **argv)
 {
-    FILE* imagesFile = NULL;
+    /*FILE* imagesFile = NULL;
     FILE* labelsFile = NULL;
 
     if (openFile(&imagesFile, IMAGES_FILE))
@@ -134,7 +139,80 @@ int main(int argc, char **argv)
 
     finish();
 
-    closeFiles();
+    closeFiles();*/
+
+    init();
+
+    // TODO: Check if same aspect ratio, to avoid stretched pixels:
+    // rect.w / rect.h == canvasWidth / canvasHeight
+    SDL_Rect canvasRect = {CANVAS_X, CANVAS_Y, CANVAS_PIXEL_WIDTH, CANVAS_PIXEL_HEIGHT};
+    uint8_t canvasContent[CANVAS_HEIGHT][CANVAS_WIDTH];
+    memset(canvasContent, 0, sizeof(canvasContent));
+
+    bool render = true;
+    bool running = true;
+    while (running)
+    {
+        if (render)
+        {
+            renderOnMainTexture();
+            clearRenderingTarget();
+            renderDrawRegion(CANVAS_WIDTH, CANVAS_HEIGHT, canvasContent, CANVAS_X, CANVAS_Y, CELL_SIZE);
+            displayMainTexture();
+            render = false;
+        }
+
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+            case SDL_QUIT:
+                running = false;
+                break;
+
+            case SDL_KEYDOWN:
+                int key = event.key.keysym.sym;
+                if (key == SDLK_ESCAPE)
+                {
+                    running = false;
+                }
+                else if (key == SDLK_BACKSPACE || key == SDLK_DELETE)
+                {
+                    memset(canvasContent, 0, sizeof(canvasContent));
+                    render = true;
+                }
+                else if (key == SDLK_u)
+                {
+                    render = true;
+                }
+                break;
+
+            case SDL_MOUSEMOTION:
+                // Check for left button down
+                if (event.motion.state == 1)
+                {
+                    SDL_Point mousePoint = {event.motion.x, event.motion.y};
+                    if (SDL_PointInRect(&mousePoint, &canvasRect))
+                    {
+                        // Get pos relative to canvas top-left corner
+                        int x = event.motion.x - CANVAS_X;
+                        int y = event.motion.y - CANVAS_Y;
+
+                        // Get x and y indices
+                        int xIndex = round(x / CELL_SIZE);
+                        int yIndex = round(y / CELL_SIZE);
+
+                        // TODO: Apply to surrounding cells with less intensity
+                        canvasContent[yIndex][xIndex] = 255;
+                        render = true;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    finish();
 
     return 0;
 }
