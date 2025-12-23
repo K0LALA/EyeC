@@ -175,6 +175,7 @@ int main(int argc, char **argv)
                 if (key == SDLK_ESCAPE)
                 {
                     running = false;
+                    break;
                 }
                 else if (key == SDLK_BACKSPACE || key == SDLK_DELETE)
                 {
@@ -187,23 +188,31 @@ int main(int argc, char **argv)
                 }
                 break;
 
+            case SDL_MOUSEBUTTONDOWN:
+                printf("%d ", event.motion.type);
+                break;
+
             case SDL_MOUSEMOTION:
                 // Check for left button down
-                if (event.motion.state == 1)
+                if (event.motion.state == SDL_PRESSED)
                 {
+                    
                     SDL_Point mousePoint = {event.motion.x, event.motion.y};
                     if (SDL_PointInRect(&mousePoint, &canvasRect))
                     {
-                        // Get pos relative to canvas top-left corner
-                        int x = event.motion.x - CANVAS_X;
-                        int y = event.motion.y - CANVAS_Y;
+                        Sint32 x = event.motion.x;
+                        Sint32 y = event.motion.y;
+                        Sint32 xPrev = event.motion.x - event.motion.xrel;
+                        Sint32 yPrev = event.motion.y - event.motion.yrel;
 
-                        // Get x and y indices
-                        int xIndex = round(x / CELL_SIZE);
-                        int yIndex = round(y / CELL_SIZE);
+                        int xIndex = x / CELL_SIZE;
+                        int yIndex = y / CELL_SIZE;
 
-                        // TODO: Apply to surrounding cells with less intensity
-                        canvasContent[yIndex][xIndex] = 255;
+                        if (xIndex >= 0 && xIndex < CANVAS_WIDTH && yIndex >= 0 && yIndex < CANVAS_HEIGHT)
+                        {
+                            canvasContent[yIndex][xIndex] = 255;
+                        }
+
                         render = true;
                     }
                 }
@@ -211,6 +220,8 @@ int main(int argc, char **argv)
             }
         }
     }
+
+    SDL_Delay(500);
 
     finish();
 

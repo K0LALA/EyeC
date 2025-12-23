@@ -44,10 +44,10 @@ void init()
         exit(EXIT_FAILURE);
     }
 
-    SDL_SetWindowMinimumSize(window, 1024, 768);
+    SDL_SetWindowMinimumSize(window, 640, 528);
 
     SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    SDL_SetWindowTitle(window, "Octis");
+    SDL_SetWindowTitle(window, "EyeC");
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
