@@ -188,10 +188,6 @@ int main(int argc, char **argv)
                 }
                 break;
 
-            case SDL_MOUSEBUTTONDOWN:
-                printf("%d ", event.motion.type);
-                break;
-
             case SDL_MOUSEMOTION:
                 // Check for left button down
                 if (event.motion.state == SDL_PRESSED)
@@ -200,17 +196,26 @@ int main(int argc, char **argv)
                     SDL_Point mousePoint = {event.motion.x, event.motion.y};
                     if (SDL_PointInRect(&mousePoint, &canvasRect))
                     {
-                        Sint32 x = event.motion.x;
-                        Sint32 y = event.motion.y;
                         Sint32 xPrev = event.motion.x - event.motion.xrel;
                         Sint32 yPrev = event.motion.y - event.motion.yrel;
 
-                        int xIndex = x / CELL_SIZE;
-                        int yIndex = y / CELL_SIZE;
+                        unsigned int pixelCount = abs(event.motion.xrel) + abs(event.motion.yrel);
 
-                        if (xIndex >= 0 && xIndex < CANVAS_WIDTH && yIndex >= 0 && yIndex < CANVAS_HEIGHT)
+                        int stepX = event.motion.xrel / pixelCount;
+                        int stepY = event.motion.yrel / pixelCount;
+
+                        for (int i = 0; i < pixelCount; i++)
                         {
-                            canvasContent[yIndex][xIndex] = 255;
+                            int xIndex = round(xPrev / CELL_SIZE);
+                            int yIndex = round(yPrev / CELL_SIZE);
+
+                            if (xIndex >= 0 && xIndex < CANVAS_WIDTH && yIndex >= 0 && yIndex < CANVAS_HEIGHT)
+                            {
+                                canvasContent[yIndex][xIndex] = 255;
+                            }
+
+                            xPrev += stepX;
+                            yPrev += stepY;
                         }
 
                         render = true;
