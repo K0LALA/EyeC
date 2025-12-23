@@ -24,6 +24,6 @@ void displayMainTexture();
 int renderText(const char *text, const int x, const int y);
 
 /** ========== EyeC specific methods ========== **/
-void renderDrawRegion(const uint8_t drawRegion[][CELL_WIDTH], const int x, const int y, const int cellDrawSize);
+void renderDrawRegion(const int wRegion, const int hRegion, const uint8_t drawRegion[][wRegion], const int x, const int y, const int cellDrawSize);
 
 #endif

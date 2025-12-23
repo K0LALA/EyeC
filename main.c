@@ -1,13 +1,19 @@
 #include "main.h"
 
-const char* IMAGES_FILE = IMAGES_FILE_PATH;
-const char* LABELS_FILE = LABELS_FILE_PATH;
+/*const char* IMAGES_FILE = IMAGES_FILE_PATH;
+const char* LABELS_FILE = LABELS_FILE_PATH;*/
 
 SDL_Event event;
 
+
+bool inRect(const int x, const int y, SDL_Rect* rect)
+{
+    return x > rect->x && x < rect->x + rect->w && y > rect->y && y < rect->y + rect->h;
+}
+
 int main(int argc, char **argv)
 {
-    FILE* imagesFile = NULL;
+    /*FILE* imagesFile = NULL;
     FILE* labelsFile = NULL;
 
     if (openFile(&imagesFile, IMAGES_FILE))
@@ -133,7 +139,96 @@ int main(int argc, char **argv)
 
     finish();
 
-    closeFiles();
+    closeFiles();*/
+
+    init();
+
+    // TODO: Check if same aspect ratio, to avoid stretched pixels:
+    // rect.w / rect.h == canvasWidth / canvasHeight
+    SDL_Rect canvasRect = {CANVAS_X, CANVAS_Y, CANVAS_PIXEL_WIDTH, CANVAS_PIXEL_HEIGHT};
+    uint8_t canvasContent[CANVAS_HEIGHT][CANVAS_WIDTH];
+    memset(canvasContent, 0, sizeof(canvasContent));
+
+    bool render = true;
+    bool running = true;
+    while (running)
+    {
+        if (render)
+        {
+            renderOnMainTexture();
+            clearRenderingTarget();
+            renderDrawRegion(CANVAS_WIDTH, CANVAS_HEIGHT, canvasContent, CANVAS_X, CANVAS_Y, CELL_SIZE);
+            displayMainTexture();
+            render = false;
+        }
+
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+            case SDL_QUIT:
+                running = false;
+                break;
+
+            case SDL_KEYDOWN:
+                int key = event.key.keysym.sym;
+                if (key == SDLK_ESCAPE)
+                {
+                    running = false;
+                    break;
+                }
+                else if (key == SDLK_BACKSPACE || key == SDLK_DELETE)
+                {
+                    memset(canvasContent, 0, sizeof(canvasContent));
+                    render = true;
+                }
+                else if (key == SDLK_u)
+                {
+                    render = true;
+                }
+                break;
+
+            case SDL_MOUSEMOTION:
+                // Check for left button down
+                if (event.motion.state == SDL_PRESSED)
+                {
+                    
+                    SDL_Point mousePoint = {event.motion.x, event.motion.y};
+                    if (SDL_PointInRect(&mousePoint, &canvasRect))
+                    {
+                        Sint32 xPrev = event.motion.x - event.motion.xrel;
+                        Sint32 yPrev = event.motion.y - event.motion.yrel;
+
+                        unsigned int pixelCount = abs(event.motion.xrel) + abs(event.motion.yrel);
+
+                        int stepX = event.motion.xrel / pixelCount;
+                        int stepY = event.motion.yrel / pixelCount;
+
+                        for (int i = 0; i < pixelCount; i++)
+                        {
+                            int xIndex = round(xPrev / CELL_SIZE);
+                            int yIndex = round(yPrev / CELL_SIZE);
+
+                            if (xIndex >= 0 && xIndex < CANVAS_WIDTH && yIndex >= 0 && yIndex < CANVAS_HEIGHT)
+                            {
+                                canvasContent[yIndex][xIndex] = 255;
+                            }
+
+                            xPrev += stepX;
+                            yPrev += stepY;
+                        }
+
+                        render = true;
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    SDL_Delay(500);
+
+    finish();
 
     return 0;
 }
